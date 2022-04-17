@@ -1,0 +1,373 @@
+# Schedule Logic https://github.com/valiot/schedule-logic/blob/v0.4.26/schemav2.graphql
+type Plant { # Is a physical location grouping resources, usually a Plant or a Shopfloor
+    code: String! @unique # Unique identifier for the plant e.g. "MX056"
+    name: String # How the plant is called e.g. "Toluca"
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    resources: [Resource] # List of resources inside the plant
+    materialPlants: [MaterialPlant] # List of materials this plant can produce and storage
+    demands: [Demand] # List of demands assigned to this plant
+}
+type Demand {
+    guid: String! @unique # A global unique identifier for easier access
+    startAt: Datetime # Minimum of the startAt attribute of the all orders
+    endAt: Datetime # Maximum of the endAt attribute of the all orders
+    orders: [Order] # Orders grouped by this demand
+    solutions: [Program] @id(value: "toSolve") # The different solution proposals
+    requestedBy: Program @id(value: "request") # The program which requested this demand
+    plant: Plant # When a demand has an specified plant
+}
+type Order {
+    code: String @unique # Optional unique identifier of the order
+    name: String # The name for the order, unique in the demand GUID
+    priority: Integer # This can be used to sort the list of orders and solve the first higher priority order
+    quantity: Integer # Requested magnitude
+    quantityUom: UnitOfMeasurement # Units of measurement for the given quantity
+    endAt: Datetime # Order fulfilment cannot be completed later than this
+    startAt: Datetime # Order cannot start being fulfilled earlier than this
+    material: Material # The required material
+    demand: Demand # The demand this order belongs to
+    solvedByPlans: [Plan] @id(value: "toSolve") # The plans which solve a given order
+    requiredByPlans: [Plan] @id(value: "request") # The plans which required this order
+    properties: [Property] # Properties assigned to this particular order
+}
+unique Order {
+  order_demand: [name, demandId] # Avoid an order being assigned twice to a demand guid
+}
+type Program {
+    guid: String! @unique # A globally unique identifier for easier access
+    startAt: Datetime # Minimum of the startAt attribute of all plans
+    endAt: Datetime # Maximum of the endAt attribute of all plans
+    status: ProgramStatus @default(value: "UNINITIALIZED") # Status of this program
+    inventoryGroup: InventoryGroup # Set of all inventories taken to fulfil this program
+    toSolve: Demand # The request this program is a solution to
+    request: Demand @has_one @id(value: "requestBy") # The demand that results from this program
+    plans: [Plan] # Plans grouped by this Program
+}
+type Plan {
+    progress: Integer # Percentile of the completed plan
+    quantity: Integer # Quantity of the order to be solved
+    quantityUom: UnitOfMeasurement # Unit of measurement which was used to measure this quantity
+    status: PlanStatus @default(value: "PENDING") # PENDING, RUNNING, CANCELLED, etc
+    endAt: Datetime # Datetime when this plan starts
+    startAt: Datetime # Datetime when this plan ends
+    program: Program # Group of plans which is belonging
+    material: Material # Material to be made with his specifications
+    toSolve: Order # The order to solve with this plan, one order may require many plans to be solved
+    request: Order # This plan may generate another order which can be solved by another concatenated algorithm
+    resource: Resource # Resorce used to transform a set of Ingredients in this "material."
+    process: Process # Which process detonated this plan?
+    recipe: Recipe # Recipe used to generate this material
+    stop: Stop # Is this plan related to a stop?
+    lotPlans: [LotPlan] @id(value: "plan") # One plan could use several inventories. Several plans could use one inventory
+}
+type StopReason {
+    code: String! @unique # Unique code for the identification of the Stop
+    name: String # Name for the reason for a stop, i.e, Maintenance, Emergency, Client, Client Canceled, C001, etc., as detailed as the implementation needs it
+    description: Text # Detailed description for the stop reason, usually consumed in fronted and reports
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    stops: [Stop] # Individual instances this reason produced a stop or has scheduled at least.
+}
+type Stop {
+    startAt: Datetime! # Datetime when the stop started or will start, saved in UTC
+    endAt: Datetime # Datetime when the stop will finish, if empty: is unknown when the resource would be available again, saved in UTC
+    stopResources: [StopResource] # List of relations with resources affected by this stop
+    scheduled: Boolean! # True if the stop was scheduled. False if it was an emergency stop
+    cost: Function # Function to calculate the value given to the stop
+    properties: [Property] # Properties containing additional details required by ngma, prediction, statistics, client, etc.
+    stopReason: StopReason! # Reason for the stop
+    plans: [Plan] # Had this stop been scheduled?
+}
+unique Stop {
+  start_reason: [startAt, stopReasonId] # Avoid repeating the creation of a stop
+}
+type StopResource { # Relation between a stop and a resource
+    stop: Stop! # ID of the stop involved
+    resource: Resource! # ID of the resource involved
+}
+unique StopResource {
+  stop_resource: [stopId, resourceId] # Avoid a resource being assigned twice to a stop
+}
+type Resource {
+    code: String! @unique # The unique identifier of the resource is unique among the whole client; you may concatenate the plantCode or use a unique id on the client's DB
+    name: String # Name which identifies the resource, unique in the same plant
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    resourceType: ResourceType @default(value: "UNDEFINED") # PROCESOR, STOCKER, MIX
+    properties: [Property] # Capacity, speed, whatever
+    prevs: [ResourceArc] @id(value: "next") # Resources connected previously to this resource
+    nexts: [ResourceArc] @id(value: "prev") # Resources connected afterward to this resource
+    resourceMaterials: [ResourceMaterial] # # One resource could have several compatible materials. One material could be compatible with several resources
+    processResources: [ProcessResource] # One process may require several resources. One resource could have been requested by several processes
+    lots: [Lot] # May or may not have inventory associated. It depends on whether this is a STOCKER or MIX type
+    plans: [Plan] # Associated plans to this resource like stops, processes, maintenance, whatever
+    stopResources: [StopResource] # List of stops this resource had been or will be involved
+    plant: Plant! # The plant where it is located
+    deviceId: ID # Device in Eliot, any device sending signals related to this resource, e.g., a PLC
+}
+unique Resource {
+    name_plant: [name, plantId] # No resources in the same plant can have the same identifier
+}
+# Connections between resources
+type ResourceArc {
+    prev: Resource # Previous resource conected to...
+    next: Resource # Next resource
+}
+unique ResourceArc {
+  resource_arc: [prevId, nextId] # Avoid an arc to be duplicated
+}
+
+type ResourceMaterial {
+    resource: Resource # This resource is compatible...
+    material: Material # with this material
+}
+unique ResourceMaterial {
+  resource_material: [resourceId, materialId] # Avoid relation to be duplicated
+}
+type Material {
+    code: String! @unique # The unique identifier of the material, usually the SKU or Part Number
+    name: String # The name for the material
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    properties: [Property] # Material-specific standard properties
+    prevs: [MaterialArc] @id(value: "next") # Materirals that produces this one
+    nexts: [MaterialArc] @id(value: "prev") # Materials that are produced by this one
+    recipeMaterials: [RecipeMaterial] @id(value: "material") # Ways of producing this material
+    resourceMaterials: [ResourceMaterial] # One resource could have several compatible materials. One material could be compatible with several resources
+    processMaterials: [ProcessMaterial] # One process could use several materials. One material could be compatible with several processes
+    plans: [Plan] # Associated plans that use this material
+    orders: [Order] # Associated orders that use this material
+    lots: [Lot] # Associated lots that use this material
+    befores: [Changeover] @id(value: "before") # Compatibililty between materials downwards
+    afters: [Changeover] @id(value: "after") # Compatibililty between materials upwards
+    materialPlants: [MaterialPlant] # List of plants where this material can be produced o stocked
+}
+type MaterialArc {
+    prev: Material # This material is predecessor...
+    next: Material # of this different material
+    changeoverFunction: Function # DEPRECATED
+}
+unique MaterialArc {
+  material_arc: [prevId, nextId] # Avoid an arc to be duplicated
+}
+type Changeover {
+    before: Material! # Material that was processed
+    after: Material! # Material to be processed next that would trigger the changeover
+    process: Process! # Process in which the changeover would take place
+    changeoverFunction: Function # Function to calculate value of changeover
+}
+unique Changeover {
+  changeover_process: [actualId, followId, processId] # Avoid an arc to be duplicated
+}
+type MaterialPlant { # Relation between Materials and Plants
+    material: Material # Material that can be produced
+    plant: Plant # Plant where it can be produced
+}
+unique MaterialPlant {
+  material_plant: [materialId, plantId] # Avoid relation to be duplicated
+}
+
+type InventoryGroup {
+    guid: String! @unique # A globally unique identifier for easier access
+    programs: [Program] # list of  programs that show how this inventory is actually used
+    lots: [Lot] @id(value: "group") # Shown the list of the available inventories
+}
+type Lot {
+    code: String @unique # Optional unique identifier for the lot
+    name: String # Label for the operators to idenfy the lot
+    lotType: LotType @default(value: "LIMITED") # LIMITED, UNLIMITED
+    startAt: Datetime # Datetime in which this inventory will be ready to be used
+    endAt: Datetime # Datetime in which this inventory will be useless
+    quantity: Integer # Reported quantity of this material
+    quantityUom: UnitOfMeasurement # Unit of measurement used to measure the quantity
+    group: InventoryGroup # Agrupation of inventories which are belonging
+    material: Material # A material given from a catalogue
+    resource: Resource # Resource which contains this material and therefore is considered an inventory stocker
+    properties: [Property] # List of reported properties measured during execution
+    lotPlans: [LotPlan] @id(value: "lot") # One plan could use several inventories. Several plans could use one inventory
+}
+type LotPlan {
+    name: String # Optional identifier for the tentative use of a lot in a plan
+    plan: Plan
+    lot: Lot
+}
+unique LotPlan {
+  lot_plan: [lotId, planId] # Avoid relation to be duplicated
+  name_plan: [name, planId] # There must not be more than one per plan to avoid conflicts intenfying the lot relation
+}
+
+type PropertyCatalog { # Listing of possible properties, e.g., height, temperature, speed, colour, etc.
+    code: String! @unique # Unique identifier, also used to sincronice with a Variable in Eliot
+    name: String # Property catalog name
+    description: String # Brief description of this property catalog
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    valueUom: UnitOfMeasurement # Unit of measurement of the given value
+    categories: [PropertyCategoryGroup] @id(value: "catalog") # Groups of categories this property catalog belongs to
+    properties: [Property] # Values for this property catalog
+    ranges: [EliotVariableRange] @id(value: "PropertyCatalog") # VariableRange in Eliot, logic regarding when the property is ok, warning or danger
+    states: [EliotVariableState] @id(value: "PropertyCatalog") # VariableState in Eliot, historic records of when each property was in which state
+}
+type EliotVariableRange {
+    propertyCatalog: PropertyCatalog
+    variableRangeId: ID
+}
+
+type EliotVariableState {
+    propertyCatalog: PropertyCatalog
+    variableStateId: ID
+}
+
+type PropertyCategoryGroup {
+    category: PropertyCategory!
+    catalog: PropertyCatalog!
+}
+
+unique PropertyCategoryGroup {
+  property_category_group: [categoryId, catalogId] # Avoid relation to be duplicated
+}
+
+type PropertyCategory { # Group of properties, it's encouraged to at least have the following categories: RESOURCES, MATERIALS, and ORDERS, joining the relevant properties for each case
+    code: String! @unique # Unique identifier to be used by Schedule UI
+    name: String! # How the category will be displayed
+    properties: [PropertyCategoryGroup] @id(value: "category")
+}
+
+type Property {
+    propertyCatalog: PropertyCatalog! # The catalogue this property belongs to
+    value: String!  # A string which specifies the quantity of this property, this value may be parsed as an Integer or Float by clients
+    material: Material # Material that contains this property
+    resource: Resource # Resource which contains this property
+    lot: Lot # Registered and measured physical material
+    stop: Stop # Details on the cause of a stop
+    order: Order # Properties assigned to a particular order
+}
+
+type Recipe {
+    code: String! @unique # Identifier of the recipe
+    name: String # Human readable name for the recipe
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    rank: Integer # Order in which this recipe must be considered, the lower the number: the higher the priority
+    recipeProcesses: [RecipeProcess] @id(value: "recipe") # List of connected processes whose sequence makes a dependency network to manufacture a material
+    recipeMaterials: [RecipeMaterial] @id(value: "recipe") # Output material produced by execute this recipe
+    plans: [Plan] # Plans in where this recipe had been used
+}
+type RecipeMaterial {
+    recipe: Recipe # Recipe is the way to produce material
+    material: Material # Material to be produced
+}
+unique RecipeMaterial {
+  recipe_material: [recipeId, materialId] # Avoid relation to be duplicated
+}
+type RecipeProcess {
+    recipe: Recipe # Master recipe
+    process: Process # Slave process
+}
+unique RecipeProcess {
+  recipe_process: [recipeId, processId] # Avoid relation to be duplicated
+}
+type Process {
+    code: String! @unique # Unique identifier for the process
+    name: String # Human readable name for the process
+    description: String # Description of the process
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    timeFunction: Function # A function by means of which an extension is to be calculated
+    changeovers: [Changeover] # List of changeovers that could occur during this process
+    recipeProcesses: [RecipeProcess] @id(value: "process") # Recipe that owns this process
+    processMaterials: [ProcessMaterial] @id(value: "process") # Ingredients used for this process
+    processResources: [ProcessResource] @id(value: "process") # This process will use these resources. One resource could be used in several processes
+    prevs: [ProcessArc] @id(value: "next")
+    nexts: [ProcessArc] @id(value: "prev")
+    plans: [Plan] # Associated plans detonated by this process
+}
+type ProcessArc {
+    prev: Process # Prev process
+    next: Process # Next Process
+}
+unique ProcessArc {
+  process_arc: [prevId, nextId] # Avoid an arc to be duplicated
+}
+type ProcessMaterial {
+    process: Process # Process information
+    material: Material # Material Information
+    quantityFunction: Function # A function employing the required quantity of this material (ingredient) is calculated
+}
+unique ProcessMaterial {
+  process_material: [processId, materialId] # Avoid relation to be duplicated
+}
+type ProcessResource {
+    resource: Resource # Resource information
+    process: Process # Process information
+}
+unique ProcessResource {
+  process_resource: [processId, resourceId] # Avoid relation to be duplicated
+}
+type Function { # A mathematical expression which takes as inputs any Schedule Logic type and outcomes as a specific value
+    code: String! @unique # Unique identifier for the function, may have namespace
+    name: String # Human readable identifier for the function
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    functionType: FunctionType @default(value: "UNDEFINED") # PROCESS_TIME, MAINTEINANCE_TIME, etc
+    uom: UnitOfMeasurement # Unit of measurement of the output function
+    description: String # Brief description of the function's utility
+    processes: [Process] # Used to calculate process time
+    processMaterials: [ProcessMaterial] @id(value: "quantityFunction") # Used to calculate quantities
+    materialArcs: [MaterialArc] # Deprecated
+    changeovers: [Changeover] @id(value: "changeoverFunction") # Used to calculate cost of changeover
+    stops: [Stop] # Stops's cost function associated
+}
+type UnitOfMeasurement {
+    code: String! @unique #Ensure unit uniqueness to facilitate queries for conversions
+    name: String # Human readable identifier
+    enabled: Boolean @default(value: true) # Wheather this item should be conidered for planning and simulating
+    symbol: String! @unique # Avoids duplicate units and ease mutations for clients
+    uomType: UomType # Type of unit allow smart conversions between units
+    orders: [Order] # Associated orders that use this Uom
+    plans: [Plan] # Associated plans that use this Uom
+    lots: [Lot] # Associated lots that use this Uom
+    functions: [Function] # Associated functions that use this Uom
+    propertyCatalogs: [PropertyCatalog] # Associated properties that use this Uom
+    eliotUnitId: ID # In case working with Eliot schema too, an Exodus job may synchronize units
+}
+
+enum LotType {
+    LIMITED
+    UNLIMITED
+}
+enum ResourceType {
+    UNDEFINED
+    STOCKER
+    PROCESSOR
+    MIX
+}
+enum ProgramStatus {
+    UNINITIALIZED
+    BUILDING
+    UNFEASIBLE
+    WAITING_APPROVAL
+    APPROVED
+    REJECTED
+    SELECTED
+}
+enum PlanStatus {
+    PENDING
+    RUNNING
+    PAUSED
+    FINISHED
+    CANCELLED
+}
+enum FunctionType {
+    UNDEFINED
+    PROCESS_TIME
+    INGREDIENT_QUANTITY
+    CHANGEOVER_COST
+}
+
+# https://web.archive.org/web/20180327035230/http://dirac.cnrs-orleans.fr:80/ScientificPython/ScientificPythonManual/Scientific.Physics.PhysicalQuantities-module.html
+enum UomType {
+    UNIT
+    MASS
+    DENSITY
+    ENERGY
+    LENGTH
+    AREA
+    VOLUME
+    TEMPERATURE
+    TIME
+    SPEED
+}

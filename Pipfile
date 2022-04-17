@@ -1,0 +1,26 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pytest = "~=6.1"
+pytest-cov = "~=2.10"
+pylint = "~=2.6"
+sphinx = "~=3.4"
+sphinx-rtd-theme = "==0.5.1"
+sphinx-markdown-builder = "==0.5.4"
+recommonmark = "==0.7.1"
+autopep8 = "~=1.5"
+
+[packages]
+gstorm = "~=0.6"
+redis = "~=3.5"
+ortools = "~=8.0"
+numpy = "~=1.20"
+networkx = "~=2.5"
+matplotlib = "~=3.3"
+pandas = "~=1.2"
+
+[requires]
+python_version = "3.9"
