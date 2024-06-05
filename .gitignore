@@ -137,7 +137,6 @@ dmypy.json
 *.txt
 
 # Images
-*.jpg
 
 # specific files
 play*.py
