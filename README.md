@@ -2,6 +2,8 @@
 
 Dandori is a revolutionary scheduling tool designed to optimize manufacturing processes using advanced mathematical algorithms. By leveraging Directed Acyclic Graphs (DAGs) for item recipes and incorporating real-time process data such as durations and machine assignments, Dandori enhances operational efficiency and minimizes makespan across various manufacturing environments.
 
+![schedul_example](images/gantt.jpg)
+
 ## Table of Contents
 
 - [Features](#features)
