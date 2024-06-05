@@ -1,0 +1,41 @@
+# Name of the project
+name: Testing
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  pull_request:
+    branches:
+      - 'main'
+      - '[Ss][Pp][Rr][Ii][Nn][Tt]*'
+
+jobs:
+  tests:
+    # OS to run
+    runs-on: ubuntu-latest
+
+    steps:
+      # Validate every action
+      - uses: actions/checkout@v1
+
+      - name: Setting up Python 3.9 & env vars
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+
+      - name: Installing pipenv
+        uses: dschep/install-pipenv-action@v1
+
+      - name: Installing dependencies
+        run: |
+          pipenv install --dev
+
+      # Testing all test and stops if there is one error.
+      - name: Testing with pytest
+        # env: # Environment variables
+        #   API_DEV: ${{ secrets.API_DEV }}
+        #   WSS_DEV: ${{ secrets.WSS_DEV }}
+        #   TOKEN_DEV: ${{ secrets.TOKEN_DEV }}
+        #   ENV: ${{ secrets.ENV }}
+        run: |
+          pipenv run pytest -x

@@ -1,0 +1,2 @@
+class ScaleNotDefined(Exception):
+    pass

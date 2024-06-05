@@ -1,6 +1,6 @@
 import pytest
-from scheduler.examples import generate_random_inputs
-from scheduler.validators import valid_demand, valid_program, valid_material, valid_order,\
+from dandori.examples import generate_random_inputs
+from dandori.validators import valid_demand, valid_program, valid_material, valid_order,\
     valid_resource, valid_recipe, valid_stop, valid_uom  # valid_lot, valid_invGroup, valid_changeover
 
 cases = generate_random_inputs(cases=10, size=(1, 5))

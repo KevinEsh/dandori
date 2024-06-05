@@ -1,8 +1,8 @@
 from pandas._testing import assert_frame_equal
 import pandas as pd
 from tests.fixtures import order_placer
-from scheduler.algorithms.inventory.just_in_time.planner import JustInTime
-from scheduler.models import Demand
+from dandori.algorithms.inventory.just_in_time.planner import JustInTime
+from dandori.models import Demand
 
 
 def test_set(order_placer: JustInTime):

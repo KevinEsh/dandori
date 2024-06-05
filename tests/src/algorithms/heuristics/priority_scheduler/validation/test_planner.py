@@ -1,4 +1,4 @@
-from scheduler.algorithms.heuristics.priority_scheduler.planner import PriorityScheduler
+from dandori.algorithms.heuristics.priority_scheduler.planner import PriorityScheduler
 from tests.fixtures import random_demand
 
 

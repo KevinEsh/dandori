@@ -1,0 +1,40 @@
+on:
+  pull_request:
+   branches:
+    - 'main'
+name: Auto Documentation
+jobs:
+  BuildDocs:
+    name: Building Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+         python-version: 3.9
+      - name: Installing pipenv
+        uses: dschep/install-pipenv-action@v1
+      - name: Installing dependencies
+        run: |
+          pipenv install --dev
+      - name: Building auto documentation
+        uses: ammaraskar/sphinx-action@master
+        with:
+          pre-build-command: "pip install recommonmark; pip install sphinx-markdown-builder; sphinx-apidoc -o modules .."
+          build-command: "sphinx-build -M markdown . _build"
+          docs-folder: "docs/"
+      - name: Upload as artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: DocumentationMarkdown
+          path: docs/_build/markdown
+      - name: Upload Documentation to Wiki
+        uses: SwiftDocOrg/github-wiki-publish-action@v1
+        with:
+          path: "docs/_build/markdown"
+        env:
+          GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}

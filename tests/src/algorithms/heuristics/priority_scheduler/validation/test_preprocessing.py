@@ -1,4 +1,4 @@
-from scheduler.algorithms.heuristics.priority_scheduler.preprocessing import normalize_data, parse_to_dataframe, datetime_to_int
+from dandori.algorithms.heuristics.priority_scheduler.preprocessing import normalize_data, parse_to_dataframe, datetime_to_int
 from tests.fixtures import random_data_frame
 from tests.fixtures import random_demand
 

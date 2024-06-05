@@ -1,7 +1,7 @@
 import pytest
-from scheduler.validators.valid_metadata import valid_metadata
-from scheduler.examples import generate_random_inputs, build_models
-from scheduler.examples.scheduling import make_flowshop_example
+from dandori.validators.valid_metadata import valid_metadata
+from dandori.examples import generate_random_inputs, build_models
+from dandori.examples.scheduling import make_flowshop_example
 
 cases = generate_random_inputs(cases=10, size=(1, 5))
 

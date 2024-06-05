@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
-from scheduler.helpers.datetools import to_int, to_iso8601, is_intersected
-from scheduler.models import Demand
+from dandori.helpers.datetools import to_int, to_iso8601, is_intersected
+from dandori.models import Demand
 from tests.fixtures import random_datetime
 
 
