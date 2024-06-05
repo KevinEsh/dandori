@@ -36,14 +36,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='scheduler',
+    name='dandori',
     version=__version__,
     description=desc,
     long_description=long_description,
     long_description_content_type='text/markdown',
-    author="Valiot",
-    author_email="hiring@valiot.io",
-    url='https://github.com/valiot/scheduler',
+    author="KevinEsh",
+    author_email="godspeed.ai@outlook.com",
+    url='https://github.com/KevinEsh/dandori',
     packages=find_packages(include=['scheduler']),
     entry_points={},
     include_package_data=True,

@@ -1,6 +1,6 @@
-from scheduler.algorithms.scheduling import FlowShop
-from scheduler.examples import build_models
-from scheduler.helpers.drawers import plot_gantt
+from dandori.algorithms.scheduling import FlowShop
+from dandori.examples import build_models
+from dandori.helpers.drawers import plot_gantt
 from pydash import group_by
 
 

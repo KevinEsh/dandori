@@ -1,4 +1,3 @@
-# Schedule Logic https://github.com/valiot/schedule-logic/blob/v0.4.26/schemav2.graphql
 type Plant { # Is a physical location grouping resources, usually a Plant or a Shopfloor
     code: String! @unique # Unique identifier for the plant e.g. "MX056"
     name: String # How the plant is called e.g. "Toluca"

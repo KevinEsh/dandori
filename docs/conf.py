@@ -13,9 +13,9 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
-project = 'Scheduler'
-copyright = '2021, Valiot'
-author = 'Valiot'
+project = 'Dandori'
+copyright = '2023, Kevin'
+author = 'KevinEsh'
 # The full version, including alpha/beta/rc tags
 release = __version__
 # -- General configuration ---------------------------------------------------

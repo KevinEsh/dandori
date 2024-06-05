@@ -1,6 +1,7 @@
-from scheduler.algorithms.scheduling import FlowShop
-from scheduler.examples import build_models
-from scheduler.helpers.drawers import plot_gantt
+from dandori.algorithms.scheduling import FlowShop
+from dandori.examples import build_models
+from dandori.helpers.drawers import plot_gantt
+from dandori.models import Order, Process
 from pydash import group_by
 
 data = build_models(
@@ -43,6 +44,7 @@ planner.link_function(my_func_b, "D")
 planner.link_function(my_func_b, "E")
 
 planner.set_demand(data["demand"])
+planner.optimize()
 planner.run(verbose=1)
 program = planner.result()
 

@@ -1,7 +1,7 @@
 import pytest
 import pydash as ph
-from scheduler.helpers import datetools as dt
-from scheduler.examples import generate_random_inputs
+from dandori.helpers import datetools as dt
+from dandori.examples import generate_random_inputs
 
 cases = generate_random_inputs(cases=5, size=(3, 5))
 

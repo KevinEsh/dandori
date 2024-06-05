@@ -1,15 +1,15 @@
 import pytest
-from scheduler.examples.gen_inputs import build_models
+from dandori.examples.gen_inputs import build_models
 import random
 import pandas as pd
 import numpy as np
 from copy import deepcopy
-from scheduler.examples.scheduling import make_flowshop_example
-from scheduler.algorithms.scheduling.flowshop.ignition import ignite_optimizator, ignite_program, ignite_transitions
-from scheduler.algorithms.scheduling.flowshop.constrains import add_dependency, add_resource_no_overlap, add_single_recipe
-from scheduler.helpers import datetools as dt
-from scheduler.models import Lot, Demand, InventoryGroup, Material, Order
-from scheduler.algorithms.inventory.just_in_time.planner import JustInTime
+from dandori.examples.scheduling import make_flowshop_example
+from dandori.algorithms.scheduling.flowshop.ignition import ignite_optimizator, ignite_program, ignite_transitions
+from dandori.algorithms.scheduling.flowshop.constrains import add_dependency, add_resource_no_overlap, add_single_recipe
+from dandori.helpers import datetools as dt
+from dandori.models import Lot, Demand, InventoryGroup, Material, Order
+from dandori.algorithms.inventory.just_in_time.planner import JustInTime
 from datetime import datetime
 
 

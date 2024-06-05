@@ -1,3 +1,75 @@
-# <img height="36" alt="valiot/scheduler" src="https://user-images.githubusercontent.com/18579439/97337099-759d8680-1845-11eb-9a60-2ed270964f28.png"> Please look for information in our [Wiki](https://google.com)
+# Dandori: Next-Gen Scheduler
 
-[![DeepSource](https://deepsource.io/gh/valiot/scheduler.svg/?label=active+issues&show_trend=true&token=1lpDEF1SspnzUhBNjQbS1N2p)](https://deepsource.io/gh/valiot/scheduler/?ref=repository-badge)
+Dandori is a revolutionary scheduling tool designed to optimize manufacturing processes using advanced mathematical algorithms. By leveraging Directed Acyclic Graphs (DAGs) for item recipes and incorporating real-time process data such as durations and machine assignments, Dandori enhances operational efficiency and minimizes makespan across various manufacturing environments.
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Examples](#examples)
+- [Technologies Used](#technologies-used)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+
+## Features
+
+- **Optimized Scheduling:** Utilizes advanced algorithms to optimize production schedules.
+- **Directed Acyclic Graphs (DAGs):** Represents item recipes with DAGs to streamline process flows.
+- **Real-Time Data Integration:** Incorporates process durations and machine assignments for accurate scheduling.
+- **Scalability:** Adaptable to various manufacturing environments and scales with the complexity of operations.
+- **User-Friendly Interface:** Easy-to-use interface for configuring and monitoring schedules.
+
+## Installation
+
+To install Dandori, follow these steps:
+
+1. **Clone the repository:**
+    ```bash
+    git clone https://github.com/yourusername/dandori.git
+    ```
+2. **Navigate to the project directory:**
+    ```bash
+    cd dandori
+    ```
+3. **Install the required dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Usage
+
+1. **Prepare your data:**
+    - Ensure your manufacturing data, including item recipes, process durations, and machine assignments, is in the required format.
+
+2. **Run Dandori:**
+    ```bash
+    python dandori.py
+    ```
+
+3. **Configure your scheduling parameters:** 
+    - Adjust settings such as optimization goals, constraints, and priorities in the configuration file.
+
+4. **Monitor and analyze schedules:**
+    - Use the user-friendly interface to review and adjust the generated schedules.
+
+## Configuration
+
+Dandori requires a configuration file to specify scheduling parameters. Below is an example configuration file (`config.yaml`):
+
+```yaml
+optimization:
+  goal: minimize_makespan
+  constraints:
+    - machine_capacity
+    - process_duration
+
+data_sources:
+  recipes: path/to/recipes.csv
+  process_durations: path/to/durations.csv
+  machine_assignments: path/to/machines.csv
+
+output:
+  schedule: path/to/schedule_output.csv
